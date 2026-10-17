@@ -1,5 +1,6 @@
 import { PuzzleDefinition } from '../types/puzzle';
 import { Sudoku6x6Definition } from './sudoku';
+import { TangoDefinition } from './tango';
 
 /**
  * Registry of all supported puzzle types in Noodles.
@@ -8,7 +9,11 @@ import { Sudoku6x6Definition } from './sudoku';
  */
 const puzzleRegistry: Record<string, PuzzleDefinition<any, any>> = {
   sudoku_6x6: Sudoku6x6Definition,
-  sudoku: Sudoku6x6Definition, // Fallback alias
+  sudoku6x6: Sudoku6x6Definition,
+  sudoku: Sudoku6x6Definition,
+  tango: TangoDefinition,
+  tango_6x6: TangoDefinition,
+  tango6x6: TangoDefinition,
 };
 
 export function getPuzzleDefinition(puzzleType: string): PuzzleDefinition<any, any> | undefined {

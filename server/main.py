@@ -19,13 +19,14 @@ import random
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from sudoku import generate, is_valid_solution
+import sudoku
+import tango
 
 # ---------------------------------------------------------------------------
 # App setup
@@ -42,15 +43,15 @@ app.add_middleware(
 
 # ---------------------------------------------------------------------------
 # In-memory puzzle store
-# {puzzle_id: {puzzle, solution_hash, solution, seed, served_at}}
+# {puzzle_id: {puzzle_type, puzzle, solution_hash, solution, seed, served_at}}
 # Replace with Redis/DB in production.
 # ---------------------------------------------------------------------------
 _puzzle_store: dict[str, dict[str, Any]] = {}
 
 
-def _solution_hash(solution: list[list[int]]) -> str:
+def _solution_hash(solution: Any) -> str:
     """SHA-256 of the canonical JSON representation of a solution grid."""
-    canonical = json.dumps(solution, separators=(",", ":"))
+    canonical = json.dumps(solution, separators=(",", ":"), sort_keys=True)
     return hashlib.sha256(canonical.encode()).hexdigest()
 
 
@@ -61,12 +62,12 @@ def _solution_hash(solution: list[list[int]]) -> str:
 class PuzzleResponse(BaseModel):
     puzzle_id: str
     puzzle_type: str
-    puzzle: list[list[int]]
+    puzzle: Any
     served_at: str   # ISO-8601 UTC
 
 
 class SubmitRequest(BaseModel):
-    solution: list[list[int]]
+    solution: Any
 
 
 class SubmitResponse(BaseModel):
@@ -80,19 +81,31 @@ class SubmitResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 @app.get("/puzzle/new", response_model=PuzzleResponse)
-def new_puzzle() -> PuzzleResponse:
+def new_puzzle(type: Optional[str] = Query(default=None)) -> PuzzleResponse:
     """
-    Generate a new 6×6 Sudoku puzzle.
+    Generate a new puzzle (randomly sudoku6x6 or tango, or specified via ?type=).
 
     The seed is created server-side and never exposed to the client.
     """
+    if type in ("sudoku", "sudoku6x6", "sudoku_6x6"):
+        puzzle_type = "sudoku6x6"
+    elif type in ("tango", "tango6x6", "tango_6x6"):
+        puzzle_type = "tango"
+    else:
+        puzzle_type = random.choice(["sudoku6x6", "tango"])
+
     seed = random.randint(0, 2**31 - 1)
-    puzzle, solution = generate(seed)
+
+    if puzzle_type == "sudoku6x6":
+        puzzle, solution = sudoku.generate(seed)
+    else:
+        puzzle, solution = tango.generate(seed)
 
     puzzle_id = str(uuid.uuid4())
     served_at = datetime.now(timezone.utc).isoformat()
 
     _puzzle_store[puzzle_id] = {
+        "puzzle_type": puzzle_type,
         "puzzle": puzzle,
         "solution": solution,
         "solution_hash": _solution_hash(solution),
@@ -102,7 +115,7 @@ def new_puzzle() -> PuzzleResponse:
 
     return PuzzleResponse(
         puzzle_id=puzzle_id,
-        puzzle_type="sudoku_6x6",
+        puzzle_type=puzzle_type,
         puzzle=puzzle,
         served_at=served_at,
     )
@@ -126,12 +139,18 @@ def submit_solution(puzzle_id: str, body: SubmitRequest) -> SubmitResponse:
     elapsed = (datetime.now(timezone.utc) - served_at_dt).total_seconds()
 
     attempt = body.solution
+    puzzle_type = record.get("puzzle_type", "sudoku6x6")
 
-    # Basic shape check
-    if len(attempt) != 6 or any(len(row) != 6 for row in attempt):
+    # Basic shape check (both Sudoku and Tango are 6x6 grids)
+    if not isinstance(attempt, list) or len(attempt) != 6 or any(not isinstance(row, list) or len(row) != 6 for row in attempt):
         raise HTTPException(status_code=422, detail="Solution must be a 6×6 grid.")
 
-    correct = is_valid_solution(record["puzzle"], attempt, record["solution"])
+    if puzzle_type in ("sudoku", "sudoku6x6", "sudoku_6x6"):
+        correct = sudoku.is_valid_solution(record["puzzle"], attempt, record["solution"])
+    elif puzzle_type in ("tango", "tango6x6", "tango_6x6"):
+        correct = tango.is_valid_solution(record["puzzle"], attempt, record["solution"])
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown puzzle type: {puzzle_type}")
 
     if correct:
         message = f"Correct! Solved in {elapsed:.1f}s."

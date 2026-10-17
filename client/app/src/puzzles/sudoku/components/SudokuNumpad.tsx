@@ -9,50 +9,80 @@ interface SudokuNumpadProps {
 }
 
 export function SudokuNumpad({ onDigitPress, disabled = false }: SudokuNumpadProps) {
-  return (
-    <View style={styles.numpad}>
-      {SUDOKU_6X6_CONFIG.DIGITS.map(d => (
-        <Pressable
-          key={d}
-          disabled={disabled}
-          style={({ pressed }) => [
-            styles.numBtn,
-            pressed && styles.numBtnPressed,
-            disabled && styles.btnDisabled,
-          ]}
-          onPress={() => onDigitPress(d)}>
-          <Text style={styles.numBtnText}>{d}</Text>
-        </Pressable>
-      ))}
+  const row1 = SUDOKU_6X6_CONFIG.DIGITS.slice(0, 3);
+  const row2 = SUDOKU_6X6_CONFIG.DIGITS.slice(3, 6);
 
-      {/* Erase button */}
+  return (
+    <View style={styles.container}>
+      <View style={styles.digitsPanel}>
+        <View style={styles.row}>
+          {row1.map(d => (
+            <Pressable
+              key={d}
+              disabled={disabled}
+              style={({ pressed }) => [
+                styles.numBtn,
+                pressed && styles.numBtnPressed,
+                disabled && styles.btnDisabled,
+              ]}
+              onPress={() => onDigitPress(d)}>
+              <Text style={styles.numBtnText}>{d}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={styles.row}>
+          {row2.map(d => (
+            <Pressable
+              key={d}
+              disabled={disabled}
+              style={({ pressed }) => [
+                styles.numBtn,
+                pressed && styles.numBtnPressed,
+                disabled && styles.btnDisabled,
+              ]}
+              onPress={() => onDigitPress(d)}>
+              <Text style={styles.numBtnText}>{d}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {/* Clear button on the right */}
       <Pressable
         disabled={disabled}
         style={({ pressed }) => [
-          styles.numBtn,
-          styles.eraseBtn,
-          pressed && styles.numBtnPressed,
+          styles.clearBtn,
+          pressed && styles.clearBtnPressed,
           disabled && styles.btnDisabled,
         ]}
         onPress={() => onDigitPress(0)}>
-        <Text style={styles.numBtnText}>⌫</Text>
+        <Text style={styles.clearIcon}>⌫</Text>
+        <Text style={styles.clearLabel}>Clear</Text>
       </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  numpad: {
+  container: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'stretch',
     justifyContent: 'center',
     gap: 10,
-    paddingHorizontal: 20,
-    marginTop: 8,
+    marginTop: 10,
+    alignSelf: 'center',
+  },
+  digitsPanel: {
+    gap: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 10,
   },
   numBtn: {
-    width: 52,
-    height: 52,
+    width: 54,
+    height: 50,
     borderRadius: 12,
     backgroundColor: COLORS.card,
     alignItems: 'center',
@@ -63,9 +93,18 @@ const styles = StyleSheet.create({
   numBtnPressed: {
     backgroundColor: COLORS.selected,
   },
-  eraseBtn: {
+  clearBtn: {
+    width: 68,
+    borderRadius: 12,
     backgroundColor: COLORS.eraseBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
     borderColor: COLORS.eraseBorder,
+  },
+  clearBtnPressed: {
+    backgroundColor: '#442842',
+    borderColor: '#9E6385',
   },
   btnDisabled: {
     opacity: 0.5,
@@ -74,5 +113,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: COLORS.text,
+  },
+  clearIcon: {
+    fontSize: 22,
+    color: COLORS.text,
+    marginBottom: 2,
+  },
+  clearLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.text,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
 });

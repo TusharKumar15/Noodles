@@ -27,55 +27,57 @@ export function SudokuBoard({
   return (
     <View style={styles.gridWrapper}>
       <View style={styles.grid}>
-        {userGrid.map((row, r) =>
-          row.map((val, c) => {
-            const isGiven = puzzle[r][c] !== 0;
-            const isSelected = sel?.[0] === r && sel?.[1] === c;
-            const inSameRow = sel?.[0] === r;
-            const inSameCol = sel?.[1] === c;
-            const inSameBox =
-              sel !== null &&
-              Math.floor(r / BOX_ROWS) === Math.floor(sel[0] / BOX_ROWS) &&
-              Math.floor(c / BOX_COLS) === Math.floor(sel[1] / BOX_COLS);
-            const conflict = hasCellConflict(userGrid, r, c);
+        {userGrid.map((row, r) => (
+          <View key={r} style={styles.row}>
+            {row.map((val, c) => {
+              const isGiven = puzzle[r][c] !== 0;
+              const isSelected = sel?.[0] === r && sel?.[1] === c;
+              const inSameRow = sel?.[0] === r;
+              const inSameCol = sel?.[1] === c;
+              const inSameBox =
+                sel !== null &&
+                Math.floor(r / BOX_ROWS) === Math.floor(sel[0] / BOX_ROWS) &&
+                Math.floor(c / BOX_COLS) === Math.floor(sel[1] / BOX_COLS);
+              const conflict = hasCellConflict(userGrid, r, c);
 
-            // Box borders (thick lines between 2x3 boxes)
-            const borderRight = (c + 1) % BOX_COLS === 0 && c < SIZE - 1;
-            const borderBottom = (r + 1) % BOX_ROWS === 0 && r < SIZE - 1;
+              // Box borders (thick lines between 2x3 boxes)
+              const borderRight = (c + 1) % BOX_COLS === 0 && c < SIZE - 1;
+              const borderBottom = (r + 1) % BOX_ROWS === 0 && r < SIZE - 1;
 
-            let bg = COLORS.cellBg;
-            if (isSelected) {
-              bg = COLORS.selected;
-            } else if (inSameRow || inSameCol || inSameBox) {
-              bg = COLORS.highlight;
-            }
+              let bg = COLORS.cellBg;
+              if (isSelected) {
+                bg = COLORS.selected;
+              } else if (inSameRow || inSameCol || inSameBox) {
+                bg = COLORS.highlight;
+              }
 
-            return (
-              <Pressable
-                key={`${r}-${c}`}
-                disabled={disabled}
-                style={[
-                  styles.cell,
-                  borderRight && styles.cellBorderRight,
-                  borderBottom && styles.cellBorderBottom,
-                  { backgroundColor: bg },
-                ]}
-                onPress={() => onCellPress(r, c)}>
-                {val !== 0 && (
-                  <Text
-                    style={[
-                      styles.cellText,
-                      isGiven && styles.givenText,
-                      !isGiven && conflict && styles.conflictText,
-                      !isGiven && !conflict && styles.userText,
-                    ]}>
-                    {val}
-                  </Text>
-                )}
-              </Pressable>
-            );
-          }),
-        )}
+              return (
+                <Pressable
+                  key={`${r}-${c}`}
+                  disabled={disabled}
+                  style={[
+                    styles.cell,
+                    borderRight && styles.cellBorderRight,
+                    borderBottom && styles.cellBorderBottom,
+                    { backgroundColor: bg },
+                  ]}
+                  onPress={() => onCellPress(r, c)}>
+                  {val !== 0 && (
+                    <Text
+                      style={[
+                        styles.cellText,
+                        isGiven && styles.givenText,
+                        !isGiven && conflict && styles.conflictText,
+                        !isGiven && !conflict && styles.userText,
+                      ]}>
+                      {val}
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
       </View>
     </View>
   );
@@ -83,6 +85,7 @@ export function SudokuBoard({
 
 const styles = StyleSheet.create({
   gridWrapper: {
+    alignSelf: 'center',
     marginVertical: 16,
     borderRadius: 12,
     overflow: 'hidden',
@@ -90,10 +93,10 @@ const styles = StyleSheet.create({
     borderColor: COLORS.boxBorder,
   },
   grid: {
-    width: CELL_SIZE * SUDOKU_6X6_CONFIG.SIZE,
-    height: CELL_SIZE * SUDOKU_6X6_CONFIG.SIZE,
+    flexDirection: 'column',
+  },
+  row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
   },
   cell: {
     width: CELL_SIZE,

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { PuzzleProps } from '../../types/puzzle';
 import { SudokuBoard } from './components/SudokuBoard';
 import { SudokuNumpad } from './components/SudokuNumpad';
@@ -50,7 +50,7 @@ export function SudokuPuzzle({
   );
 
   return (
-    <View>
+    <View style={styles.container}>
       <SudokuBoard
         puzzle={puzzle}
         userGrid={userGrid}
@@ -64,3 +64,9 @@ export function SudokuPuzzle({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+  },
+});
