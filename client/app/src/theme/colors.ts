@@ -1,0 +1,17 @@
+export const COLORS = {
+  bg: '#0F0F1A',
+  card: '#1A1A2E',
+  cellBg: '#1E1E32',
+  selected: '#4F46E5',
+  highlight: '#2A2A45',
+  border: '#2E2E4E',
+  boxBorder: '#4F46E5',
+  accent: '#818CF8',
+  given: '#FFFFFF',
+  user: '#818CF8',
+  conflict: '#F87171',
+  text: '#E2E8F0',
+  muted: '#64748B',
+  eraseBg: '#2D1F2E',
+  eraseBorder: '#7F4F6A',
+};
