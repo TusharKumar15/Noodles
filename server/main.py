@@ -25,6 +25,8 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from constants import PUZZLE_TYPES, PUZZLES_LIST
+import lights_out
 import sudoku
 import tango
 
@@ -83,23 +85,30 @@ class SubmitResponse(BaseModel):
 @app.get("/puzzle/new", response_model=PuzzleResponse)
 def new_puzzle(type: Optional[str] = Query(default=None)) -> PuzzleResponse:
     """
-    Generate a new puzzle (randomly sudoku6x6 or tango, or specified via ?type=).
+    Generate a new puzzle (randomly sudoku, tango, or lights_out, or specified via ?type=).
 
     The seed is created server-side and never exposed to the client.
     """
-    if type in ("sudoku", "sudoku6x6", "sudoku_6x6"):
-        puzzle_type = "sudoku6x6"
-    elif type in ("tango", "tango6x6", "tango_6x6"):
-        puzzle_type = "tango"
+    if type is not None:
+        if type not in PUZZLES_LIST:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid puzzle type: '{type}'. Valid types are: {PUZZLES_LIST}",
+            )
+        puzzle_type = type
     else:
-        puzzle_type = random.choice(["sudoku6x6", "tango"])
+        puzzle_type = random.choice(PUZZLES_LIST)
 
     seed = random.randint(0, 2**31 - 1)
 
-    if puzzle_type == "sudoku6x6":
+    if puzzle_type == PUZZLE_TYPES.SUDOKU:
         puzzle, solution = sudoku.generate(seed)
-    else:
+    elif puzzle_type == PUZZLE_TYPES.TANGO:
         puzzle, solution = tango.generate(seed)
+    elif puzzle_type == PUZZLE_TYPES.LIGHTS_OUT:
+        puzzle, solution = lights_out.generate(seed)
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported puzzle type: {puzzle_type}")
 
     puzzle_id = str(uuid.uuid4())
     served_at = datetime.now(timezone.utc).isoformat()
@@ -139,16 +148,18 @@ def submit_solution(puzzle_id: str, body: SubmitRequest) -> SubmitResponse:
     elapsed = (datetime.now(timezone.utc) - served_at_dt).total_seconds()
 
     attempt = body.solution
-    puzzle_type = record.get("puzzle_type", "sudoku6x6")
+    puzzle_type = record.get("puzzle_type")
 
-    # Basic shape check (both Sudoku and Tango are 6x6 grids)
-    if not isinstance(attempt, list) or len(attempt) != 6 or any(not isinstance(row, list) or len(row) != 6 for row in attempt):
-        raise HTTPException(status_code=422, detail="Solution must be a 6×6 grid.")
-
-    if puzzle_type in ("sudoku", "sudoku6x6", "sudoku_6x6"):
+    if puzzle_type == PUZZLE_TYPES.SUDOKU:
+        if not isinstance(attempt, list) or len(attempt) != 6 or any(not isinstance(row, list) or len(row) != 6 for row in attempt):
+            raise HTTPException(status_code=422, detail="Solution must be a 6×6 grid.")
         correct = sudoku.is_valid_solution(record["puzzle"], attempt, record["solution"])
-    elif puzzle_type in ("tango", "tango6x6", "tango_6x6"):
+    elif puzzle_type == PUZZLE_TYPES.TANGO:
+        if not isinstance(attempt, list) or len(attempt) != 6 or any(not isinstance(row, list) or len(row) != 6 for row in attempt):
+            raise HTTPException(status_code=422, detail="Solution must be a 6×6 grid.")
         correct = tango.is_valid_solution(record["puzzle"], attempt, record["solution"])
+    elif puzzle_type == PUZZLE_TYPES.LIGHTS_OUT:
+        correct = lights_out.is_valid_solution(record["puzzle"], attempt, record["solution"])
     else:
         raise HTTPException(status_code=400, detail=f"Unknown puzzle type: {puzzle_type}")
 

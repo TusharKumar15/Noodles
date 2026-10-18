@@ -14,7 +14,7 @@ export async function fetchNewPuzzle(apiBase: string): Promise<PuzzleData> {
     const data = await res.json();
     return {
       puzzleId: data.puzzle_id,
-      puzzleType: data.puzzle_type || 'sudoku_6x6',
+      puzzleType: data.puzzle_type || 'sudoku',
       puzzle: data.puzzle,
       servedAt: data.served_at,
     };
