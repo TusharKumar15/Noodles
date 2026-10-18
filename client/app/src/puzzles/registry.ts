@@ -1,5 +1,6 @@
 import { PuzzleDefinition } from '../types/puzzle';
 import { LightsOutDefinition } from './lights_out';
+import { QueensDefinition } from './queens';
 import { Sudoku6x6Definition } from './sudoku';
 import { TangoDefinition } from './tango';
 
@@ -9,16 +10,10 @@ import { TangoDefinition } from './tango';
  * src/puzzles/<name> and register it here.
  */
 const puzzleRegistry: Record<string, PuzzleDefinition<any, any>> = {
-  sudoku_6x6: Sudoku6x6Definition,
-  sudoku6x6: Sudoku6x6Definition,
   sudoku: Sudoku6x6Definition,
   tango: TangoDefinition,
-  tango_6x6: TangoDefinition,
-  tango6x6: TangoDefinition,
   lights_out: LightsOutDefinition,
-  lightsout: LightsOutDefinition,
-  'lights-out': LightsOutDefinition,
-  lights: LightsOutDefinition,
+  queens: QueensDefinition,
 };
 
 export function getPuzzleDefinition(puzzleType: string): PuzzleDefinition<any, any> | undefined {

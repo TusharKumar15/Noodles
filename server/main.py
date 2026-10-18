@@ -27,6 +27,7 @@ from pydantic import BaseModel
 
 from constants import PUZZLE_TYPES, PUZZLES_LIST
 import lights_out
+import queens
 import sudoku
 import tango
 
@@ -107,6 +108,8 @@ def new_puzzle(type: Optional[str] = Query(default=None)) -> PuzzleResponse:
         puzzle, solution = tango.generate(seed)
     elif puzzle_type == PUZZLE_TYPES.LIGHTS_OUT:
         puzzle, solution = lights_out.generate(seed)
+    elif puzzle_type == PUZZLE_TYPES.QUEENS:
+        puzzle, solution = queens.generate(seed)
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported puzzle type: {puzzle_type}")
 
@@ -160,6 +163,8 @@ def submit_solution(puzzle_id: str, body: SubmitRequest) -> SubmitResponse:
         correct = tango.is_valid_solution(record["puzzle"], attempt, record["solution"])
     elif puzzle_type == PUZZLE_TYPES.LIGHTS_OUT:
         correct = lights_out.is_valid_solution(record["puzzle"], attempt, record["solution"])
+    elif puzzle_type == PUZZLE_TYPES.QUEENS:
+        correct = queens.is_valid_solution(record["puzzle"], attempt, record["solution"])
     else:
         raise HTTPException(status_code=400, detail=f"Unknown puzzle type: {puzzle_type}")
 
