@@ -1,6 +1,7 @@
 import { PuzzleDefinition } from '../types/puzzle';
 import { LightsOutDefinition } from './lights_out';
 import { QueensDefinition } from './queens';
+import { SlitherlinkDefinition } from './slitherlink';
 import { Sudoku6x6Definition } from './sudoku';
 import { TangoDefinition } from './tango';
 
@@ -14,6 +15,7 @@ const puzzleRegistry: Record<string, PuzzleDefinition<any, any>> = {
   tango: TangoDefinition,
   lights_out: LightsOutDefinition,
   queens: QueensDefinition,
+  slitherlink: SlitherlinkDefinition,
 };
 
 export function getPuzzleDefinition(puzzleType: string): PuzzleDefinition<any, any> | undefined {

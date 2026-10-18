@@ -7,6 +7,7 @@ class _PuzzleTypes(dict):
     TANGO = "tango"
     LIGHTS_OUT = "lights_out"
     QUEENS = "queens"
+    SLITHERLINK = "slitherlink"
 
     def __init__(self):
         super().__init__(
@@ -14,6 +15,7 @@ class _PuzzleTypes(dict):
             TANGO=self.TANGO,
             LIGHTS_OUT=self.LIGHTS_OUT,
             QUEENS=self.QUEENS,
+            SLITHERLINK=self.SLITHERLINK,
         )
 
     def __getattr__(self, name: str) -> str:
@@ -30,4 +32,5 @@ PUZZLES_LIST = [
     PUZZLE_TYPES.TANGO,
     PUZZLE_TYPES.LIGHTS_OUT,
     PUZZLE_TYPES.QUEENS,
+    PUZZLE_TYPES.SLITHERLINK,
 ]
